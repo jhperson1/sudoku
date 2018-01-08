@@ -3,7 +3,9 @@
 from pulp import *
 
 class SudokuPULP():
+
     ''' Use SudokuPULP to solve a 9 x 9 sudoku problem '''
+
     def __init__(self, board):
 
         prob = LpProblem("Sudoku", LpMaximize)
