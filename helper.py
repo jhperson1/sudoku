@@ -18,15 +18,6 @@ def readFromBoard(board):
     for i in range(9):
         for j in range(9):
             val = board[i][j]
-
-            #while loop approach
-            board_variables[i][j] = zeros
-            k = 1
-            while k != val:
-                k++
-            board_variables[i][j][k - 1] = 1
-
-            #for loop approach
             for k in range(1,10):
                 if val == k:
                     board_variables[i][j][k] = 1
