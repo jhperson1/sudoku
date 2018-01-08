@@ -23,18 +23,13 @@ def main():
                      [8,2,7,1,9,3,4,6,5],
                      [4,6,3,5,7,2,8,1,9]]
 
-    # instantiate the solver object
-    solver = Sudoku.SudokuPULP()
+    sudoku = Sudoku.SudokuPULP()
 
-    # read the board into the variables
-    variables = solver.readFromBoard()
+    sudoku.addBoard(board_unsolved)
 
-    # solve the board
-    solver.solve(variables)
+    solution = sudoku.solve()
 
-    # write the variables into the board
-    solved = solver
-
+    ##compare solution to board_solved##
 
 if __init__ == "__main__":
     main()
