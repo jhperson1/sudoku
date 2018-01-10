@@ -5,14 +5,10 @@ class Board():
         # the underscore indicates that the user shouldn't
         # directly call the board attribute. instead the
         # user should use the methods of the board class
-        _board = []
-        if ():
-        else:
+        self._board = values
 
-            type, nameerror
+    def getValue(self, x, y):
+        self._board[x][y]
 
-    def getValue(self):
-
-    def addValue(self):
-
-    def print(self):
+    def addValue(self, x, y, v):
+        self._board[x][y] = v
