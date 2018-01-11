@@ -2,25 +2,34 @@
 
 from pulp import *
 
+import pdb
+
 class SudokuPULP():
 
     ''' Use SudokuPULP to solve a 9 x 9 sudoku problem '''
 
-    def __init__(self, board):
-        prob = LpProblem("Sudoku", LpMaximize)
-        variables = _addVariables()
+    def __init__(self):
+        self.prob = LpProblem("Sudoku", LpMaximize)
+        self.Sequence = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
+        self.Vals = self.Sequence
+        self.Rows = self.Sequence
+        self.Cols = self.Sequence
+        self.Boxes = self._addBoxes()
+        self.choices = self._addChoices()
         self._addObjective()
         self._addSudokuRules()
+        return None
 
     def addBoard(self, board):
-        hints = _readFromBoard(board)
-        self._addSudokuHints()
+        hints = self._readFromBoard(board)
+        self._addSudokuHints(hints)
         self._problemWriteUp()
+        return None
 
     def solve(self):
-        prob.solve()
-        print "Status:", LpStatus[prob.status]
-        solved_board = _writeToBoard(variables)
+        self.prob.solve()
+        print "Status:", LpStatus[self.prob.status]
+        solved_board = self._writeToBoard()
         return solved_board
 
     def __str__(self):
@@ -28,67 +37,71 @@ class SudokuPULP():
 
     # ------------ Helper functions ------------ #
 
-    # add sudoku variables
-    def _addVariables(self):
-        Sequence = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
-        Vals = Sequence
-        Rows = Sequence
-        Cols = Sequence
+    # add sudoku boxes
+    def _addBoxes(self):
         Boxes = []
         for r in range(3):
             for c in range(3):
-                list = [[(Rows[3*r + i], Cols[3*c +j]) for i in range(3) for j in range(3)]]
+                list = [[(self.Rows[3*r + i], self.Cols[3*c +j]) for i in range(3) for j in range(3)]]
                 Boxes += list
-        variables = LpVariables.dicts("choice", (Vals, Rows, Cols), 0, 1, LpInteger)
-        return variables
+        return Boxes
+
+    # add sudoku choices
+    def _addChoices(self):
+        choices = LpVariable.dicts("Choice", (self.Vals, self.Rows, self.Cols), 0, 1, LpInteger)
+        return choices
 
     # add objective function
     def _addObjective(self):
         self.prob += 0, "No specific objective function"
+        return None
 
     # define the constraints
     def _addSudokuRules(self):
         # only one value per index
-        for r in Rows:
-            for c in Cols:
-                self.prob += lpSum([variables[v] [r] [c]] for v in Vals) == 1, "Single Value"
+        for r in self.Rows:
+            for c in self.Cols:
+                self.prob += lpSum([self.choices[v] [r] [c]] for v in self.Vals) == 1, ""
 
         # one of each value in each row, column, box
-        for v in Vals:
-            for r in Rows:
-                self.prob += lpSum([variables[v] [r] [c]] for c in Cols) == 1, "Row Value"
-            for c in Cols:
-                self.prob += lpSum([variables[v] [r] [c]] for r in Rows) == 1, "Column Value"
-            for b in Boxes:
-                self.prob += lpSum([variables[v] [r] [c] for (r,c) in b]) == 1, "Box Value"
+        for v in self.Vals:
+            for r in self.Rows:
+                self.prob += lpSum([self.choices[v] [r] [c]] for c in self.Cols) == 1, ""
+            for c in self.Cols:
+                self.prob += lpSum([self.choices[v] [r] [c]] for r in self.Rows) == 1, ""
+            for b in self.Boxes:
+                self.prob += lpSum([self.choices[v] [r] [c] for (r,c) in b]) == 1, ""
+        return None
 
     # convert 9 x 9 board of values 1-9 and 0 at blank squares --> list of tuples (row, col, value) representing hints
     def _readFromBoard(self, board):
         hints = []
-        for i in range(9):
-            for j in range(9):
+        for j in range(9):
+            for i in range(9):
                 val = board[i][j]
                 if val != 0:
-                    hints.append((i,j,val))
+                    hints.append((str(val),str(i+1),str(j+1)))
         return hints
 
-    def _addSudokuHints(self):
+    def _addSudokuHints(self, hints):
         for (val, row, col) in hints:
-            self.prob += variables[val][row][col] == 1, ""
+            self.prob += self.choices[val][row][col] == 1, ""
+        return None
 
     # The problem data is written to an .lp file
     def _problemWriteUp(self):
         self.prob.writeLP("Sudoku.lp")
         print("LP problem specifications written to Sudoku.lp")
+        return None
 
-    # converts dictionary of variables --> 9 x 9 board of values 1-9
+    # converts dictionary of choices --> 9 x 9 board of values 1-9
     def _writeToBoard(self):
-        board = []
-        for r in Rows:
-            for c in Cols:
-                for v in Vals:
-                    if value(self.variables[v][r][c]) == 1:
-                        board[r][c] = v
+        board = [[0] * 9 for i in range(9)]
+        for r in self.Rows:
+            for c in self.Cols:
+                for v in self.Vals:
+                    if value(self.choices[v][r][c]) == 1:
+                        board[int(r)-1][int(c)-1] = int(v)
         return board
 
     # The problem solution is written to a .txt file
@@ -97,12 +110,12 @@ class SudokuPULP():
         sudokuout = open('sudokuout.txt','w')
 
         # The solution is written to the sudokuout.txt file
-        for r in Rows:
+        for r in self.Rows:
             if r == "1" or r == "4" or r == "7":
                             sudokuout.write("+-------+-------+-------+\n")
-            for c in Cols:
-                for v in Vals:
-                    if value(choices[v][r][c])==1:
+            for c in self.Cols:
+                for v in self.Vals:
+                    if value(self.choices[v][r][c])==1:
 
                         if c == "1" or c == "4" or c =="7":
                             sudokuout.write("| ")

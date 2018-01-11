@@ -80,7 +80,7 @@ prob += choices["6"]["6"]["9"] == 1,""
 prob += choices["5"]["8"]["9"] == 1,""
 
 # The problem data is written to an .lp file
-prob.writeLP("Sudoku.lp")
+prob.writeLP("Sudoku_case_study.lp")
 
 # The problem is solved using PuLP's choice of Solver
 prob.solve()
@@ -88,8 +88,8 @@ prob.solve()
 # The status of the solution is printed to the screen
 print "Status:", LpStatus[prob.status]
 
-# A file called sudokuout.txt is created/overwritten for writing to
-sudokuout = open('sudokuout.txt','w')
+# A file called sudokuout_case_study.txt is created/overwritten for writing to
+sudokuout = open('sudokuout_case_study.txt','w')
 
 # The solution is written to the sudokuout.txt file
 for r in Rows:
@@ -110,4 +110,4 @@ sudokuout.write("+-------+-------+-------+")
 sudokuout.close()
 
 # The location of the solution is give to the user
-print "Solution Written to sudokuout.txt"
+print "Solution Written to sudokuout_case_study.txt"
