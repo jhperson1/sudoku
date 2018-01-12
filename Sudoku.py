@@ -18,17 +18,31 @@ class SudokuPULP():
         self.choices = self._addChoices()
         self._addObjective()
         self._addSudokuRules()
+        print("\nWelcome to the LP Sudoku Solver!")
+        print("Sudoku rules have been")
+        print("uploaded to your solver")
+        self._updateStatus()
+        self._printStatus()
         return None
 
     def addBoard(self, board):
         hints = self._readFromBoard(board)
+        print("Here's the unsolved board \n")
+        for row in board:
+            print("{}".format(row))
         self._addSudokuHints(hints)
         self._problemWriteUp()
+        self._updateStatus()
+        self._printStatus()
         return None
 
     def solve(self):
+        print "Starting SUDOKU solving magic ..."
+        print "(But it's strategic and precise magic because"
+        print " we're using linear programming)"
         self.prob.solve()
-        print "Status:", LpStatus[self.prob.status]
+        self._updateStatus()
+        self._printStatus()
         solved_board = self._writeToBoard()
         return solved_board
 
@@ -37,12 +51,27 @@ class SudokuPULP():
 
     # ------------ Helper functions ------------ #
 
+    def _updateStatus(self):
+        self.status = LpStatus[self.prob.status]
+        return None
+
+    def _printStatus(self):
+        print "\n Status: {} \n".format(self.status)
+        if self.status == "Optimal":
+            print "We've found a solution!"
+        # elif self.status == "Not Solved":
+        #     print "Enter your sudoku puzzle using the _addBoard method"
+        # else:
+        #     print "Something went wrong, consider checking the board"
+        print "\n"
+        return None
+
     # add sudoku boxes
     def _addBoxes(self):
         Boxes = []
         for r in range(3):
             for c in range(3):
-                list = [[(self.Rows[3*r + i], self.Cols[3*c +j]) for i in range(3) for j in range(3)]]
+                list = [[(self.Sequence[3*r + i], self.Sequence[3*c +j]) for i in range(3) for j in range(3)]]
                 Boxes += list
         return Boxes
 
@@ -91,7 +120,7 @@ class SudokuPULP():
     # The problem data is written to an .lp file
     def _problemWriteUp(self):
         self.prob.writeLP("Sudoku.lp")
-        print("LP problem specifications written to Sudoku.lp")
+        print("\n Board specifications written to Sudoku.lp")
         return None
 
     # converts dictionary of choices --> 9 x 9 board of values 1-9

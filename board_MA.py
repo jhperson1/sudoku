@@ -1,10 +1,9 @@
-
+#!/user/bin/env/Python
 # Matt Alpert's Code
 
 import math
 
 import utils_MA
-
 
 class board(object):
 

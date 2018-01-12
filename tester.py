@@ -1,19 +1,19 @@
 #!/user/bin/env/Python
 
-import Sudoku
+import SudokuPandas
 
 def main():
     # create test board
 
-    # board_unsolved  =  [[5,3,0,0,7,0,0,0,0],
-    #                     [6,0,0,1,9,5,0,0,0],
-    #                     [0,9,8,0,0,0,0,6,0],
-    #                     [8,0,0,0,6,0,0,0,3],
-    #                     [4,0,0,8,0,3,0,0,1],
-    #                     [7,0,0,0,2,0,0,0,6],
-    #                     [0,6,0,0,0,0,2,8,0],
-    #                     [0,0,0,4,1,9,0,0,5],
-    #                     [0,0,0,0,8,0,0,7,0]]
+    board_unsolved  =  [[5,3,0,0,7,0,0,0,0],
+                        [6,0,0,1,9,5,0,0,0],
+                        [0,9,8,0,0,0,0,6,0],
+                        [8,0,0,0,6,0,0,0,3],
+                        [4,0,0,8,0,3,0,0,1],
+                        [7,0,0,0,2,0,0,0,6],
+                        [0,6,0,0,0,0,2,8,0],
+                        [0,0,0,4,1,9,0,0,5],
+                        [0,0,0,0,8,0,0,7,0]]
 
     # board_solved = [[5, 3, 4, 6, 7, 8, 9, 1, 2],
     #                 [6, 7, 2, 1, 9, 5, 3, 4, 8],
@@ -25,10 +25,15 @@ def main():
     #                 [2, 8, 7, 4, 1, 9, 6, 3, 5],
     #                 [3, 4, 5, 2, 8, 6, 1, 7, 9]]
 
-    sudoku = Sudoku.SudokuPULP()
-    sudoku.addBoard(board_unsolved2)
+    # solve sudoku
+    sudoku = SudokuPandas.Sudoku()
+    sudoku.addBoard(board_unsolved)
     solution = sudoku.solve()
-    print(solution)
+
+    # print solution in console and save solution in txt
+    print("Here's the solved board \n")
+    for row in solution:
+        print("{}".format(row))
     print(sudoku)
 
     ##compare solution to board_solved##

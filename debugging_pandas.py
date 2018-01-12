@@ -2,6 +2,8 @@
 
 import pandas as pd
 
+# January 10th: Playing with Pandas
+
 # in this file, we follow along with a pandas tutorial
 # https://pandas.pydata.org/pandas-docs/stable/tutorials.html
 
@@ -30,3 +32,5 @@ df[df['A'] == 5.0]['B'].tolist()
 
 ## Access df rows such subject to value constraint conditions
 df[(df['A']==5.0) & (df['B']==6.0)]
+
+df = pd.read_csv('sudoku_pandas_df_indices.csv')
