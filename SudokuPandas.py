@@ -147,9 +147,8 @@ class Sudoku():
 
     def _addSudokuHints(self, hints):
         for (val, row, col) in hints:
-            v,r,c = np.array([val])[0],np.array([row])[0],np.array([col])[0]
-            x = self.choices[(self.choices['vals'] == v) & (self.choices['cols'] == c) & (self.choices['rows'] == r)]['choice'].tolist()
-            self.prob += x == 1, ""
+            e = self.choices[(self.choices['vals'] == int(val)) & (self.choices['cols'] == int(col)) & (self.choices['rows'] == int(row))]['choice'].tolist()
+            self.prob += lpSum(e) == 1, ""
         return None
 
     # The problem data is written to an .lp file
@@ -161,11 +160,12 @@ class Sudoku():
     # converts dictionary of choices --> 9 x 9 board of values 1-9
     def _writeToBoard(self):
         board = [[0] * 9 for i in range(9)]
-        for r in self.Rows:
-            for c in self.Cols:
-                for v in self.Vals:
-                    if value(self.choices[v][r][c]) == 1:
-                        board[int(r)-1][int(c)-1] = int(v)
+        for r in self.Sequence:
+            for c in self.Sequence:
+                for v in self.Sequence:
+                    e = self.choices[(self.choices['vals'] == int(v)) & (self.choices['cols'] == int(c)) & (self.choices['rows'] == int(r))]['choice'].tolist()
+                    if e == np.array([1]):
+                        board[int(r)-1][int(c)-1] = v
         return board
 
     # The problem solution is written to a .txt file
@@ -174,25 +174,29 @@ class Sudoku():
         sudokuout = open('sudokuout.txt','w')
 
         # The solution is written to the sudokuout.txt file
-        for r in self.Rows:
-            if r == "1" or r == "4" or r == "7":
+        for r in self.Sequence:
+            if int(r) == 1 or int(r) == 4 or int(r) == 7:
                             sudokuout.write("+-------+-------+-------+\n")
-            for c in self.Cols:
-                for v in self.Vals:
-                    if value(self.choices[v][r][c])==1:
+            for c in self.Sequence:
+                for v in self.Sequence:
+                    e = self.choices[(self.choices['vals'] == int(v)) & (self.choices['cols'] == int(c)) & (self.choices['rows'] == int(r))]['choice'].tolist()
+                    if e[0]==np.array([1]):
 
-                        if c == "1" or c == "4" or c =="7":
+                        if int(c) == 1 or int(c) == 4 or int(c) ==7:
                             sudokuout.write("| ")
 
-                        sudokuout.write(v + " ")
+                        sudokuout.write(str(v) + " ")
 
-                        if c == "9":
+                        if int(c) == 9:
                             sudokuout.write("|\n")
         sudokuout.write("+-------+-------+-------+")
         sudokuout.close()
 
         # The location of the solution is give to the user
         return "Solution Written to sudokuout.txt"
+
+    def _convertIntToNumpyInt(x):
+        return np.array([x])[0]
 
 
 
