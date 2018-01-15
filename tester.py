@@ -28,7 +28,7 @@ def main():
     #                 [3, 4, 5, 2, 8, 6, 1, 7, 9]]
 
     # solve sudoku
-    # sudoku = Sudoku.Sudoku()
+    # sudoku = Sudoku.SudokuPULP()
     sudoku = SudokuPandas.Sudoku()
     sudoku.addBoard(board_unsolved)
     solution = sudoku.solve()

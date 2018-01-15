@@ -175,12 +175,12 @@ class Sudoku():
 
         # The solution is written to the sudokuout.txt file
         for r in self.Sequence:
-            if int(r) == 1 or int(r) == 4 or int(r) == 7:
+            if int(r) == 1 or int(r) == 4 or int(r) ==7:
                             sudokuout.write("+-------+-------+-------+\n")
             for c in self.Sequence:
                 for v in self.Sequence:
                     e = self.choices[(self.choices['vals'] == int(v)) & (self.choices['cols'] == int(c)) & (self.choices['rows'] == int(r))]['choice'].tolist()
-                    if e[0]==np.array([1]):
+                    if value(e[0]) == 1.0:
 
                         if int(c) == 1 or int(c) == 4 or int(c) ==7:
                             sudokuout.write("| ")
