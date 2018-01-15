@@ -40,4 +40,7 @@ i=1
 j=1
 k=1
 
-x = cdf[(cdf['vals'] == i) & (cdf['rows'] == j) & (cdf['vals'] == k)]['choice']
+y = cdf.iat[]
+x = cdf[(cdf['vals'] == i) & (cdf['cols'] == j) & (cdf['rows'] == k)]['choice'].tolist()
+
+

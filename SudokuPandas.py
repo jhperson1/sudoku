@@ -8,6 +8,7 @@ import csv
 from pulp import *
 import numpy as np
 import pdb
+# import storage
 
 def main():
     sudoku = Sudoku()
@@ -98,7 +99,7 @@ class Sudoku():
         for r in range(1,10):
             for c in range(1,10):
                 for v in range(1,10):
-                    choices.set_value(counter, 'choice', LpVariable("x_{}_{}_{}".format(v,r,c), 0, 1, LpInteger))
+                    choices.set_value(counter, 'choice', LpVariable("Choice_{}_{}_{}".format(v,r,c), 0, 1, LpInteger))
                     counter += 1
         return choices
 
@@ -108,41 +109,40 @@ class Sudoku():
         return None
 
     def _addSudokuRules(self):
-        # value constraint: forall i,j: sum_k {c_ijk} == 1
-        for i in range(1,10):
-            for j in range(1,10):
-                v = self.choices[((self.choices['rows'] == i) & self.choices['cols'] == j)]['choice'].tolist()
+        # value constraint: forall i,j: sum_k {c_xyz} == 1
+        for x in range(1,10):
+            for y in range(1,10):
+                v = self.choices[(self.choices['rows'] == x) & (self.choices['cols'] == y)]['choice'].tolist()
                 self.prob += lpSum(v) == 1, ""
 
         # row and column constraint:
-        # forall i,k: sum_j {c_ijk} == 1
-        # forall k,k: sum_i {c_ijk} == 1
-        for i in range(1,10):
-            for k in range(1,10):
-                v = self.choices[(self.choices['rows'] == i) & (self.choices['vals'] == k)]['choice'].tolist()
+        # forall x,z: sum_y {c_xyz} == 1
+        # forall y,z: sum_x {c_xyz} == 1
+        for x in range(1,10):
+            for z in range(1,10):
+                v = self.choices[(self.choices['rows'] == x) & (self.choices['vals'] == z)]['choice'].tolist()
                 self.prob += lpSum(v) == 1, ""
 
-        for j in range(1,10):
-            for k in range(1,10):
-                v = self.choices[(self.choices['cols'] == j) & (self.choices['vals'] == k)]['choice'].tolist()
+        for y in range(1,10):
+            for z in range(1,10):
+                v = self.choices[(self.choices['cols'] == y) & (self.choices['vals'] == z)]['choice'].tolist()
                 self.prob += lpSum(v) == 1, ""
 
         # box constraint: forall k, boxes: sum_(i,j) {c_ijk} == 1
         for box in self.Boxes:
-            for k in range(1,10):
-                for (r,c) in box:
-                    v = self.choices[(self.choices['rows'] == r) & (self.choices['cols'] == c) & (self.choices['vals'] == k)]['choice'].tolist()
-                    self.prob += lpSum(v for (r,c) in box) == 1, ""
+            for (r,c) in box:
+                v = self.choices[(self.choices['rows'] == r) & (self.choices['cols'] == c)]['choice'].tolist()
+                self.prob += lpSum(v) == 1, ""
         return None
 
     # convert 9 x 9 board of values 1-9 and 0 at blank squares --> list of tuples (row, col, value) representing hints
     def _readFromBoard(self, board):
         hints = []
-        for j in range(9):
-            for i in range(9):
-                val = board[i][j]
+        for y in range(1,10):
+            for x in range(1,10):
+                val = board[x-1][y-1]
                 if val != 0:
-                    hints.append((str(val),str(i+1),str(j+1)))
+                    hints.append((str(val),str(x),str(y)))
         return hints
 
     def _addSudokuHints(self, hints):
@@ -164,7 +164,7 @@ class Sudoku():
             for c in self.Sequence:
                 for v in self.Sequence:
                     e = self.choices[(self.choices['vals'] == int(v)) & (self.choices['cols'] == int(c)) & (self.choices['rows'] == int(r))]['choice'].tolist()
-                    if e == np.array([1]):
+                    if value(e[0]) == 1.0:
                         board[int(r)-1][int(c)-1] = v
         return board
 

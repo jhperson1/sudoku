@@ -34,3 +34,15 @@ df[df['A'] == 5.0]['B'].tolist()
 df[(df['A']==5.0) & (df['B']==6.0)]
 
 df = pd.read_csv('sudoku_pandas_df_indices.csv')
+
+def _addChoicesIndicesCSV(self, name):
+        vals = range(1,10) * 81
+        rows = [j for j in range(1,10) for i in range(81)]
+        cols = [j for i in range(1,10) for j in range(1,10) for k in range(1,10)]
+        l_original = (vals, rows, cols)
+        l_transpose = zip(*l_original)
+        with open(name, "wb") as f:
+            writer = csv.writer(f)
+            names = ['vals', 'cols', 'rows']
+            writer.writerow(names)
+            writer.writerows(l_transpose)

@@ -1,6 +1,8 @@
 #!/user/bin/env/Python
 
+import Sudoku
 import SudokuPandas
+import pdb
 
 def main():
     # create test board
@@ -26,6 +28,7 @@ def main():
     #                 [3, 4, 5, 2, 8, 6, 1, 7, 9]]
 
     # solve sudoku
+    # sudoku = Sudoku.Sudoku()
     sudoku = SudokuPandas.Sudoku()
     sudoku.addBoard(board_unsolved)
     solution = sudoku.solve()
