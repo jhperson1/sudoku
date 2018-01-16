@@ -2,20 +2,38 @@
 
 import Sudoku
 import SudokuPandas
+import Board
+import time
 import pdb
 
 def main():
-    # create test board
+    board = Board.Board()
+    board.setBoardCSV("sudoku_board1.csv")
 
-    board_unsolved  =  [[5,3,0,0,7,0,0,0,0],
-                        [6,0,0,1,9,5,0,0,0],
-                        [0,9,8,0,0,0,0,6,0],
-                        [8,0,0,0,6,0,0,0,3],
-                        [4,0,0,8,0,3,0,0,1],
-                        [7,0,0,0,2,0,0,0,6],
-                        [0,6,0,0,0,0,2,8,0],
-                        [0,0,0,4,1,9,0,0,5],
-                        [0,0,0,0,8,0,0,7,0]]
+    start = time.time()
+
+    # sudoku = Sudoku.SudokuDictionary() # load the sudoku solver
+    sudoku = SudokuPandas.SudokuPandasDF()
+    sudoku.addBoard(board) # fill the sudoku board in the data and the console
+    solution = sudoku.solve() # solve the sudoku board
+    sudoku.solutionWriteUp(solution) # write up the solution in the console and a txt file
+
+    end = time.time()
+
+    print("\nTotal time was: " + str(end-start))
+
+if __name__ == "__main__":
+    main()
+
+    # board_unsolved  =  [[5,3,0,0,7,0,0,0,0],
+    #                     [6,0,0,1,9,5,0,0,0],
+    #                     [0,9,8,0,0,0,0,6,0],
+    #                     [8,0,0,0,6,0,0,0,3],
+    #                     [4,0,0,8,0,3,0,0,1],
+    #                     [7,0,0,0,2,0,0,0,6],
+    #                     [0,6,0,0,0,0,2,8,0],
+    #                     [0,0,0,4,1,9,0,0,5],
+    #                     [0,0,0,0,8,0,0,7,0]]
 
     # board_solved = [[5, 3, 4, 6, 7, 8, 9, 1, 2],
     #                 [6, 7, 2, 1, 9, 5, 3, 4, 8],
@@ -26,20 +44,3 @@ def main():
     #                 [9, 6, 1, 5, 3, 7, 2, 8, 4],
     #                 [2, 8, 7, 4, 1, 9, 6, 3, 5],
     #                 [3, 4, 5, 2, 8, 6, 1, 7, 9]]
-
-    # solve sudoku
-    # sudoku = Sudoku.SudokuPULP()
-    sudoku = SudokuPandas.Sudoku()
-    sudoku.addBoard(board_unsolved)
-    solution = sudoku.solve()
-
-    # print solution in console and save solution in txt
-    print("Here's the solved board \n")
-    for row in solution:
-        print("{}".format(row))
-    print(sudoku)
-
-    ##compare solution to board_solved##
-
-if __name__ == "__main__":
-    main()

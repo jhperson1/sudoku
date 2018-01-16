@@ -1,41 +1,30 @@
 #!/user/bin/env/Python
 
-# references
-# https://stackoverflow.com/questions/12555323/adding-new-column-to-existing-dataframe-in-python-pandas
-
+from pulp import *
 import pandas as pd
 import csv
-from pulp import *
 import numpy as np
+import Board
 import pdb
-# import storage
 
-def main():
-    sudoku = Sudoku()
-    sudoku.addBoard(board)
-    solution = sudoku.solve()
+class SudokuPandasDF():
 
-class Sudoku():
+    ''' Use pandas dataframe of binary variables to solve a 9 x 9 sudoku puzzle as a linear program '''
+
     def __init__(self):
         self.prob = LpProblem("Sudoku", LpMaximize)
-        self.Sequence = np.array(range(1,10))
-        self._addChoicesIndicesCSV("sudoku_pandas_df_indicies.csv")
-        self.Boxes = self._addBoxes()
-        self.choices = self._addChoices()
+        self.Sequence, self.Vals, self.Rows, self.Cols = self._addBasics()
+        self.Boxes, self.choices = self._addVariables()
         self._addObjective()
         self._addSudokuRules()
-        print("\nWelcome to the LP Sudoku Solver!")
-        print("Sudoku rules have been")
-        print("uploaded to your solver")
+        self._welcome()
         self._updateStatus()
         self._printStatus()
         return None
 
     def addBoard(self, board):
         hints = self._readFromBoard(board)
-        print("Here's the unsolved board \n")
-        for row in board:
-            print("{}".format(row))
+        board.printBoard("unsolved")
         self._addSudokuHints(hints)
         self._problemWriteUp()
         self._updateStatus()
@@ -52,10 +41,50 @@ class Sudoku():
         solved_board = self._writeToBoard()
         return solved_board
 
-    def __str__(self):
-        return self._solutionWriteUp()
+    def solutionWriteUp(self, board):
+        board.printBoard("solved")
+
+        # A file called sudokuout.txt is created/overwritten for writing to
+        sudokuout = open('sudokuout.txt','w')
+
+        # The solution is written to the sudokuout.txt file
+        for r in self.Sequence:
+            if int(r) == 1 or int(r) == 4 or int(r) ==7:
+                            sudokuout.write("+-------+-------+-------+\n")
+            for c in self.Sequence:
+                for v in self.Sequence:
+                    e = self.choices[(self.choices['vals'] == int(v)) & (self.choices['cols'] == int(c)) & (self.choices['rows'] == int(r))]['choice'].tolist()
+                    if value(e[0]) == 1.0:
+
+                        if int(c) == 1 or int(c) == 4 or int(c) ==7:
+                            sudokuout.write("| ")
+
+                        sudokuout.write(str(v) + " ")
+
+                        if int(c) == 9:
+                            sudokuout.write("|\n")
+        sudokuout.write("+-------+-------+-------+")
+        sudokuout.close()
+
+        # The location of the solution is give to the user
+        return "Solution Written to sudokuout.txt"
 
     # ------ helper functions ------- #
+
+    def _welcome(self):
+        print("\nWelcome to the LP Sudoku Solver!")
+        print("Sudoku rules have been")
+        print("uploaded to your solver")
+
+    def _addBasics(self):
+        Sequence = np.array(range(1,10))
+        return Sequence, Sequence, Sequence, Sequence
+
+    def _addVariables(self):
+        Boxes = self._addBoxes()
+        self._createDataFrameCSV("sudoku_pandas_df_indicies.csv")
+        choices = self._addChoices()
+        return Boxes, choices
 
     def _updateStatus(self):
         self.status = LpStatus[self.prob.status]
@@ -81,7 +110,7 @@ class Sudoku():
                 Boxes += list
         return Boxes
 
-    def _addChoicesIndicesCSV(self, name):
+    def _createDataFrameCSV(self, name):
         vals = range(1,10) * 81
         rows = [j for j in range(1,10) for i in range(81)]
         cols = [j for i in range(1,10) for j in range(1,10) for k in range(1,10)]
@@ -140,7 +169,7 @@ class Sudoku():
         hints = []
         for y in range(1,10):
             for x in range(1,10):
-                val = board[x-1][y-1]
+                val = board.getValue(x-1, y-1)
                 if val != 0:
                     hints.append((str(val),str(x),str(y)))
         return hints
@@ -159,44 +188,14 @@ class Sudoku():
 
     # converts dictionary of choices --> 9 x 9 board of values 1-9
     def _writeToBoard(self):
-        board = [[0] * 9 for i in range(9)]
+        board = Board.Board()
         for r in self.Sequence:
             for c in self.Sequence:
                 for v in self.Sequence:
                     e = self.choices[(self.choices['vals'] == int(v)) & (self.choices['cols'] == int(c)) & (self.choices['rows'] == int(r))]['choice'].tolist()
                     if value(e[0]) == 1.0:
-                        board[int(r)-1][int(c)-1] = v
+                        board.setValue(int(r)-1, int(c)-1, v)
         return board
-
-    # The problem solution is written to a .txt file
-    def _solutionWriteUp(self):
-        # A file called sudokuout.txt is created/overwritten for writing to
-        sudokuout = open('sudokuout.txt','w')
-
-        # The solution is written to the sudokuout.txt file
-        for r in self.Sequence:
-            if int(r) == 1 or int(r) == 4 or int(r) ==7:
-                            sudokuout.write("+-------+-------+-------+\n")
-            for c in self.Sequence:
-                for v in self.Sequence:
-                    e = self.choices[(self.choices['vals'] == int(v)) & (self.choices['cols'] == int(c)) & (self.choices['rows'] == int(r))]['choice'].tolist()
-                    if value(e[0]) == 1.0:
-
-                        if int(c) == 1 or int(c) == 4 or int(c) ==7:
-                            sudokuout.write("| ")
-
-                        sudokuout.write(str(v) + " ")
-
-                        if int(c) == 9:
-                            sudokuout.write("|\n")
-        sudokuout.write("+-------+-------+-------+")
-        sudokuout.close()
-
-        # The location of the solution is give to the user
-        return "Solution Written to sudokuout.txt"
 
     def _convertIntToNumpyInt(x):
         return np.array([x])[0]
-
-
-

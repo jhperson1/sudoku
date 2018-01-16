@@ -1,35 +1,27 @@
 #!/user/bin/env/Python
 
 from pulp import *
-
+import Board
 import pdb
 
-class SudokuPULP():
+class SudokuDictionary():
 
-    ''' Use SudokuPULP to solve a 9 x 9 sudoku problem '''
+    ''' Use PULP dictionary of binary variables to solve a 9 x 9 sudoku puzzle as a linear program '''
 
     def __init__(self):
         self.prob = LpProblem("Sudoku", LpMaximize)
-        self.Sequence = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
-        self.Vals = self.Sequence
-        self.Rows = self.Sequence
-        self.Cols = self.Sequence
-        self.Boxes = self._addBoxes()
-        self.choices = self._addChoices()
+        self.Sequence, self.Vals, self.Rows, self.Cols = self._addBasics()
+        self.Boxes, self.choices = self._addVariables()
         self._addObjective()
         self._addSudokuRules()
-        print("\nWelcome to the LP Sudoku Solver!")
-        print("Sudoku rules have been")
-        print("uploaded to your solver")
+        self._welcome()
         self._updateStatus()
         self._printStatus()
         return None
 
     def addBoard(self, board):
+        board.printBoard("unsolved")
         hints = self._readFromBoard(board)
-        print("Here's the unsolved board \n")
-        for row in board:
-            print("{}".format(row))
         self._addSudokuHints(hints)
         self._problemWriteUp()
         self._updateStatus()
@@ -46,10 +38,49 @@ class SudokuPULP():
         solved_board = self._writeToBoard()
         return solved_board
 
-    def __str__(self):
-        return self._solutionWriteUp()
+    # The problem solution is written to a .txt file
+    def solutionWriteUp(self, board):
+        board.printBoard("solved")
+
+        # A file called sudokuout.txt is created/overwritten for writing to
+        sudokuout = open('sudokuout.txt','w')
+
+        # The solution is written to the sudokuout.txt file
+        for r in self.Rows:
+            if r == "1" or r == "4" or r == "7":
+                            sudokuout.write("+-------+-------+-------+\n")
+            for c in self.Cols:
+                for v in self.Vals:
+                    if value(self.choices[v][r][c])==1:
+
+                        if c == "1" or c == "4" or c =="7":
+                            sudokuout.write("| ")
+
+                        sudokuout.write(v + " ")
+
+                        if c == "9":
+                            sudokuout.write("|\n")
+        sudokuout.write("+-------+-------+-------+")
+        sudokuout.close()
+
+        # The location of the solution is give to the user
+        return "Solution Written to sudokuout.txt"
 
     # ------------ Helper functions ------------ #
+
+    def _welcome(self):
+        print("\nWelcome to the LP Sudoku Solver!")
+        print("Sudoku rules have been")
+        print("uploaded to your solver")
+
+    def _addBasics(self):
+        Sequence = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
+        return Sequence, Sequence, Sequence, Sequence
+
+    def _addVariables(self):
+        Boxes = self._addBoxes()
+        choices = self._addChoices()
+        return Boxes, choices
 
     def _updateStatus(self):
         self.status = LpStatus[self.prob.status]
@@ -59,10 +90,6 @@ class SudokuPULP():
         print "\n Status: {} \n".format(self.status)
         if self.status == "Optimal":
             print "We've found a solution!"
-        # elif self.status == "Not Solved":
-        #     print "Enter your sudoku puzzle using the _addBoard method"
-        # else:
-        #     print "Something went wrong, consider checking the board"
         print "\n"
         return None
 
@@ -107,7 +134,7 @@ class SudokuPULP():
         hints = []
         for j in range(9):
             for i in range(9):
-                val = board[i][j]
+                val = board.getValue(i,j)
                 if val != 0:
                     hints.append((str(val),str(i+1),str(j+1)))
         return hints
@@ -125,36 +152,10 @@ class SudokuPULP():
 
     # converts dictionary of choices --> 9 x 9 board of values 1-9
     def _writeToBoard(self):
-        board = [[0] * 9 for i in range(9)]
+        board = Board.Board()
         for r in self.Rows:
             for c in self.Cols:
                 for v in self.Vals:
                     if value(self.choices[v][r][c]) == 1:
-                        board[int(r)-1][int(c)-1] = int(v)
+                        board.setValue(int(r)-1, int(c)-1, int(v))
         return board
-
-    # The problem solution is written to a .txt file
-    def _solutionWriteUp(self):
-        # A file called sudokuout.txt is created/overwritten for writing to
-        sudokuout = open('sudokuout.txt','w')
-
-        # The solution is written to the sudokuout.txt file
-        for r in self.Rows:
-            if r == "1" or r == "4" or r == "7":
-                            sudokuout.write("+-------+-------+-------+\n")
-            for c in self.Cols:
-                for v in self.Vals:
-                    if value(self.choices[v][r][c])==1:
-
-                        if c == "1" or c == "4" or c =="7":
-                            sudokuout.write("| ")
-
-                        sudokuout.write(v + " ")
-
-                        if c == "9":
-                            sudokuout.write("|\n")
-        sudokuout.write("+-------+-------+-------+")
-        sudokuout.close()
-
-        # The location of the solution is give to the user
-        return "Solution Written to sudokuout.txt"
