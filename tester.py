@@ -4,7 +4,7 @@ import Sudoku
 import SudokuPandas
 import Board
 import time
-import pdb
+import Solver
 
 def main():
 
@@ -13,8 +13,7 @@ def main():
     board = Board.Board()
     board.setBoardCSV("sudoku_board1.csv")  # load board from csv
 
-    sudoku = Sudoku.SudokuDictionary()
-    # sudoku = SudokuPandas.SudokuPandasDF() # OR sudoku = Sudoku.SudokuDictionary() # load the sudoku solver
+    sudoku = Solver.SolverPandasDF()  # load the sudoku solver
 
     sudoku.addBoard(board) # fill the sudoku board in the data and the console
 

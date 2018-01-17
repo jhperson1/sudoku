@@ -2,7 +2,6 @@
 
 from pulp import *
 import Board
-import pdb
 
 class SudokuDictionary():
 
@@ -11,7 +10,7 @@ class SudokuDictionary():
     def __init__(self):
         self.prob = LpProblem("Sudoku", LpMaximize)
         self.Sequence, self.Vals, self.Rows, self.Cols = self._addBasics()
-        self.Boxes, self.choices = self._addVariables()
+        self.choices = self._addChoices()
         self._addObjective()
         self._addSudokuRules()
         self._welcome()
@@ -77,11 +76,6 @@ class SudokuDictionary():
         Sequence = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
         return Sequence, Sequence, Sequence, Sequence
 
-    def _addVariables(self):
-        Boxes = self._addBoxes()
-        choices = self._addChoices()
-        return Boxes, choices
-
     def _updateStatus(self):
         self.status = LpStatus[self.prob.status]
         return None
@@ -92,15 +86,6 @@ class SudokuDictionary():
             print "We've found a solution!"
         print "\n"
         return None
-
-    # add sudoku boxes
-    def _addBoxes(self):
-        Boxes = []
-        for r in range(3):
-            for c in range(3):
-                list = [[(self.Sequence[3*r + i], self.Sequence[3*c +j]) for i in range(3) for j in range(3)]]
-                Boxes += list
-        return Boxes
 
     # add sudoku choices
     def _addChoices(self):
@@ -127,8 +112,17 @@ class SudokuDictionary():
                 for c in self.Cols:
                     self.prob += lpSum([self.choices[v] [r] [c]] for r in self.Rows) == 1, ""
         def _boxConstraint():
+            # add sudoku boxes
+            def _addBoxes():
+                Boxes = []
+                for r in range(3):
+                    for c in range(3):
+                        list = [[(self.Sequence[3*r + i], self.Sequence[3*c +j]) for i in range(3) for j in range(3)]]
+                        Boxes += list
+                return Boxes
+            Boxes = _addBoxes()
             for v in self.Vals:
-                for b in self.Boxes:
+                for b in Boxes:
                     self.prob += lpSum([self.choices[v] [r] [c] for (r,c) in b]) == 1, ""
         _valueConstraint()
         _rowConstraint()
@@ -136,8 +130,8 @@ class SudokuDictionary():
         _boxConstraint()
         return None
 
-    # convert 9 x 9 board of values 1-9 and 0 at blank squares --> list of tuples (row, col, value) representing hints
-    def _readFromBoard(self, board):
+    def _readFromBoard(self, board):  # convert 9 x 9, values 1-9 and 0 at blank squares
+                                      # --> list of tuples (row, col, value) representing hints
         hints = []
         for j in range(9):
             for i in range(9):

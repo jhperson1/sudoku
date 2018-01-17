@@ -5,7 +5,6 @@ import pandas as pd
 import csv
 import numpy as np
 import Board
-import pdb
 
 class SudokuPandasDF():
 
@@ -14,7 +13,7 @@ class SudokuPandasDF():
     def __init__(self):
         self.prob = LpProblem("Sudoku", LpMaximize)
         self.Sequence, self.Vals, self.Rows, self.Cols = self._addBasics()
-        self.Boxes, self.choices = self._addVariables()
+        self.choices = self._addChoices()
         self._addObjective()
         self._addSudokuRules()
         self._welcome()
@@ -80,12 +79,6 @@ class SudokuPandasDF():
         Sequence = np.array(range(1,10))
         return Sequence, Sequence, Sequence, Sequence
 
-    def _addVariables(self):
-        Boxes = self._addBoxes()
-        self._createDataFrameCSV("sudoku_pandas_df_indicies.csv")
-        choices = self._addChoices()
-        return Boxes, choices
-
     def _updateStatus(self):
         self.status = LpStatus[self.prob.status]
         return None
@@ -101,37 +94,28 @@ class SudokuPandasDF():
         print "\n"
         return None
 
-    # add sudoku boxes
-    def _addBoxes(self):
-        Boxes = []
-        for r in range(3):
-            for c in range(3):
-                list = [[(self.Sequence[3*r + i], self.Sequence[3*c +j]) for i in range(3) for j in range(3)]]
-                Boxes += list
-        return Boxes
-
-    def _createDataFrameCSV(self, name):
-        def _labelBoxes(row, col):  # row, col in [1,9] --> box in [1,9]
-            return (col-1)/3 + (row-1)/3 * 3 + 1
-        vals = range(1,10) * 81
-        rows = [j for j in range(1,10) for i in range(81)]
-        cols = [j for i in range(1,10) for j in range(1,10) for k in range(1,10)]
-        boxes = [0 for _i in range(729)]
-        l_original = (vals, rows, cols, boxes)
-        l_transpose = zip(*l_original)
-        l_transpose = list(l_transpose)
-        for i in range(729):  # set up boxes column
-            r, c = l_transpose[i][1], l_transpose[i][2]
-            l_transpose[i] = list(l_transpose[i])
-            l_transpose[i][3] = _labelBoxes(r,c)
-            l_transpose[i] = tuple(l_transpose[i])
-        with open(name, "wb") as f:
-            writer = csv.writer(f)
-            names = ['vals','rows','cols','boxes']
-            writer.writerow(names)
-            writer.writerows(l_transpose)
-
     def _addChoices(self):
+        def _createDataFrameCSV(name):
+            def _labelBoxes(row, col):  # row, col in [1,9] --> box in [1,9]
+                return (col-1)/3 + (row-1)/3 * 3 + 1
+            vals = range(1,10) * 81
+            rows = [j for j in range(1,10) for i in range(81)]
+            cols = [j for i in range(1,10) for j in range(1,10) for k in range(1,10)]
+            boxes = [0 for _i in range(729)]
+            l_original = (vals, rows, cols, boxes)
+            l_transpose = zip(*l_original)
+            l_transpose = list(l_transpose)
+            for i in range(729):  # set up boxes column
+                r, c = l_transpose[i][1], l_transpose[i][2]
+                l_transpose[i] = list(l_transpose[i])
+                l_transpose[i][3] = _labelBoxes(r,c)
+                l_transpose[i] = tuple(l_transpose[i])
+            with open(name, "wb") as f:
+                writer = csv.writer(f)
+                names = ['vals','rows','cols','boxes']
+                writer.writerow(names)
+                writer.writerows(l_transpose)
+        _createDataFrameCSV("sudoku_pandas_df_indicies.csv")
         choices = pd.read_csv('/Users/jessicahuang/Desktop/z_freewheel/sudoku/sudoku_pandas_df_indicies.csv')
         counter = 0
         for r in range(1,10):
@@ -165,8 +149,8 @@ class SudokuPandasDF():
         _boxConstraint()
         return None
 
-    # convert 9 x 9 board of values 1-9 and 0 at blank squares --> list of tuples (row, col, value) representing hints
-    def _readFromBoard(self, board):
+    def _readFromBoard(self, board):  # convert 9 x 9, values 1-9 and 0 at blank squares
+                                      # --> list of tuples (row, col, value) representing hints
         hints = []
         for y in range(1,10):
             for x in range(1,10):
