@@ -51,10 +51,6 @@ class SolverParent(object):
         print "\n Status: {} \n".format(self.status)
         if self.status == "Optimal":
             print "We've found a solution!"
-        # elif self.status == "Not Solved":
-        #     print "Enter your sudoku puzzle using the _addBoard method"
-        # else:
-        #     print "Something went wrong, consider checking the board"
         print "\n"
         return None
     def _addBasicsALL(self):
@@ -155,7 +151,7 @@ class SolverPandasDF(SolverParent):
                     counter += 1
         return choices
     def _addSudokuRules(self):
-        def _valueConstraint():
+        def _elementConstraint():
             for _, sub_choices in self.choices.groupby(['rows', 'cols']):
                 self.prob += lpSum(sub_choices['choice'].tolist()) == 1
         def _rowConstraint():
@@ -167,7 +163,7 @@ class SolverPandasDF(SolverParent):
         def _boxConstraint():
             for _, sub_choices in self.choices.groupby(['boxes', 'vals']):
                 self.prob += lpSum(sub_choices['choice'].tolist()) == 1
-        _valueConstraint()
+        _elementConstraint()
         _rowConstraint()
         _colConstraint()
         _boxConstraint()
@@ -230,7 +226,7 @@ class SolverDictionary(SolverParent):
         choices = LpVariable.dicts("Choice", (self.Vals, self.Rows, self.Cols), 0, 1, LpInteger)
         return choices
     def _addSudokuRules(self):
-        def _valueConstraint():  # only one value per index
+        def _elementConstraint():  # only one value per index
             for r in self.Rows:
                 for c in self.Cols:
                     self.prob += lpSum([self.choices[v] [r] [c]] for v in self.Vals) == 1, ""
@@ -255,7 +251,7 @@ class SolverDictionary(SolverParent):
             for v in self.Vals:
                 for b in Boxes:
                     self.prob += lpSum([self.choices[v] [r] [c] for (r,c) in b]) == 1, ""
-        _valueConstraint()
+        _elementConstraint()
         _rowConstraint()
         _colConstraint()
         _boxConstraint()
