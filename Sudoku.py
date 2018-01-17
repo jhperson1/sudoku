@@ -114,19 +114,26 @@ class SudokuDictionary():
 
     # define the constraints
     def _addSudokuRules(self):
-        # only one value per index
-        for r in self.Rows:
-            for c in self.Cols:
-                self.prob += lpSum([self.choices[v] [r] [c]] for v in self.Vals) == 1, ""
-
-        # one of each value in each row, column, box
-        for v in self.Vals:
+        def _valueConstraint():  # only one value per index
             for r in self.Rows:
-                self.prob += lpSum([self.choices[v] [r] [c]] for c in self.Cols) == 1, ""
-            for c in self.Cols:
-                self.prob += lpSum([self.choices[v] [r] [c]] for r in self.Rows) == 1, ""
-            for b in self.Boxes:
-                self.prob += lpSum([self.choices[v] [r] [c] for (r,c) in b]) == 1, ""
+                for c in self.Cols:
+                    self.prob += lpSum([self.choices[v] [r] [c]] for v in self.Vals) == 1, ""
+        def _rowConstraint():  # one of each value in each row, column, box
+            for v in self.Vals:
+                for r in self.Rows:
+                    self.prob += lpSum([self.choices[v] [r] [c]] for c in self.Cols) == 1, ""
+        def _colConstraint():
+            for v in self.Vals:
+                for c in self.Cols:
+                    self.prob += lpSum([self.choices[v] [r] [c]] for r in self.Rows) == 1, ""
+        def _boxConstraint():
+            for v in self.Vals:
+                for b in self.Boxes:
+                    self.prob += lpSum([self.choices[v] [r] [c] for (r,c) in b]) == 1, ""
+        _valueConstraint()
+        _rowConstraint()
+        _colConstraint()
+        _boxConstraint()
         return None
 
     # convert 9 x 9 board of values 1-9 and 0 at blank squares --> list of tuples (row, col, value) representing hints

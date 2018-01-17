@@ -111,19 +111,28 @@ class SudokuPandasDF():
         return Boxes
 
     def _createDataFrameCSV(self, name):
+        def _labelBoxes(row, col):  # row, col in [1,9] --> box in [1,9]
+            return (col-1)/3 + (row-1)/3 * 3 + 1
         vals = range(1,10) * 81
         rows = [j for j in range(1,10) for i in range(81)]
         cols = [j for i in range(1,10) for j in range(1,10) for k in range(1,10)]
-        l_original = (vals, rows, cols)
+        boxes = [0 for _i in range(729)]
+        l_original = (vals, rows, cols, boxes)
         l_transpose = zip(*l_original)
+        l_transpose = list(l_transpose)
+        for i in range(729):  # set up boxes column
+            r, c = l_transpose[i][1], l_transpose[i][2]
+            l_transpose[i] = list(l_transpose[i])
+            l_transpose[i][3] = _labelBoxes(r,c)
+            l_transpose[i] = tuple(l_transpose[i])
         with open(name, "wb") as f:
             writer = csv.writer(f)
-            names = ['vals', 'cols', 'rows']
+            names = ['vals','rows','cols','boxes']
             writer.writerow(names)
             writer.writerows(l_transpose)
 
     def _addChoices(self):
-        choices = pd.read_csv('sudoku_pandas_df_indices.csv')
+        choices = pd.read_csv('/Users/jessicahuang/Desktop/z_freewheel/sudoku/sudoku_pandas_df_indicies.csv')
         counter = 0
         for r in range(1,10):
             for c in range(1,10):
@@ -138,30 +147,22 @@ class SudokuPandasDF():
         return None
 
     def _addSudokuRules(self):
-        # value constraint: forall i,j: sum_k {c_xyz} == 1
-        for x in range(1,10):
-            for y in range(1,10):
-                v = self.choices[(self.choices['rows'] == x) & (self.choices['cols'] == y)]['choice'].tolist()
-                self.prob += lpSum(v) == 1, ""
-
-        # row and column constraint:
-        # forall x,z: sum_y {c_xyz} == 1
-        # forall y,z: sum_x {c_xyz} == 1
-        for x in range(1,10):
-            for z in range(1,10):
-                v = self.choices[(self.choices['rows'] == x) & (self.choices['vals'] == z)]['choice'].tolist()
-                self.prob += lpSum(v) == 1, ""
-
-        for y in range(1,10):
-            for z in range(1,10):
-                v = self.choices[(self.choices['cols'] == y) & (self.choices['vals'] == z)]['choice'].tolist()
-                self.prob += lpSum(v) == 1, ""
-
-        # box constraint: forall k, boxes: sum_(i,j) {c_ijk} == 1
-        for box in self.Boxes:
-            for (r,c) in box:
-                v = self.choices[(self.choices['rows'] == r) & (self.choices['cols'] == c)]['choice'].tolist()
-                self.prob += lpSum(v) == 1, ""
+        def _valueConstraint():
+            for _, sub_choices in self.choices.groupby(['rows', 'cols']):
+                self.prob += lpSum(sub_choices['choice'].tolist()) == 1
+        def _rowConstraint():
+            for _, sub_choices in self.choices.groupby(['rows', 'vals']):
+                self.prob += lpSum(sub_choices['choice'].tolist()) == 1
+        def _colConstraint():
+            for _, sub_choices in self.choices.groupby(['cols', 'vals']):
+                self.prob += lpSum(sub_choices['choice'].tolist()) == 1
+        def _boxConstraint():
+            for _, sub_choices in self.choices.groupby(['boxes', 'vals']):
+                self.prob += lpSum(sub_choices['choice'].tolist()) == 1
+        _valueConstraint()
+        _rowConstraint()
+        _colConstraint()
+        _boxConstraint()
         return None
 
     # convert 9 x 9 board of values 1-9 and 0 at blank squares --> list of tuples (row, col, value) representing hints

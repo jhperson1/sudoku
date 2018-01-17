@@ -31,7 +31,7 @@ df[df['A'] == 5.0]['B']
 df[df['A'] == 5.0]['B'].tolist()
 
 ## Access df rows such subject to value constraint conditions
-df[(df['A']==5.0) & (df['B']==6.0)]
+df[(df['A'] == 5.0) & (df['B'] == 6.0)]
 
 df = pd.read_csv('sudoku_pandas_df_indices.csv')
 
