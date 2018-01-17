@@ -8,6 +8,8 @@ import Board
 
 class SolverParent(object):
 
+    ''' Use some datastructure of binary variables to solve a 9 x 9 sudoku puzzle as a linear program '''
+
     def __init__(self):
         self.prob = LpProblem("Sudoku", LpMaximize)
         self.Sequence, self.Vals, self.Rows, self.Cols = self._addBasics()
@@ -77,7 +79,8 @@ class SolverParent(object):
         self.prob.writeLP("Sudoku.lp")
         print("\n Board specifications written to Sudoku.lp")
         return None
-    def _writeToBoardALL(self): # converts dictionary of choices --> 9 x 9 board of values 1-9
+    def _writeToBoardALL(self): # converts dictionary of choices
+                                # --> 9 x 9 board of values 1-9
         self._writeToBoard()
 
 class SolverPandasDF(SolverParent):
@@ -99,7 +102,9 @@ class SolverPandasDF(SolverParent):
                             sudokuout.write("+-------+-------+-------+\n")
             for c in self.Sequence:
                 for v in self.Sequence:
-                    e = self.choices[(self.choices['vals'] == int(v)) & (self.choices['cols'] == int(c)) & (self.choices['rows'] == int(r))]['choice'].tolist()
+                    e = self.choices[(self.choices['vals'] == int(v)) &
+                                     (self.choices['cols'] == int(c)) &
+                                     (self.choices['rows'] == int(r))]['choice'].tolist()
                     if value(e[0]) == 1.0:
 
                         if int(c) == 1 or int(c) == 4 or int(c) ==7:
@@ -113,7 +118,8 @@ class SolverPandasDF(SolverParent):
         sudokuout.close()
 
         # The location of the solution is give to the user
-        return "Solution Written to sudokuout.txt"
+        print "Solution Written to sudokuout.txt"
+        return None
 
     # ------------ Helper functions ------------ #
 
@@ -170,15 +176,20 @@ class SolverPandasDF(SolverParent):
         return None
     def _addSudokuHints(self, hints):
         for (val, row, col) in hints:
-            e = self.choices[(self.choices['vals'] == int(val)) & (self.choices['cols'] == int(col)) & (self.choices['rows'] == int(row))]['choice'].tolist()
+            e = self.choices[(self.choices['vals'] == int(val)) &
+                             (self.choices['cols'] == int(col)) &
+                             (self.choices['rows'] == int(row))]['choice'].tolist()
             self.prob += lpSum(e) == 1, ""
         return None
-    def _writeToBoard(self):  # converts dictionary of choices --> 9 x 9 board of values 1-9
+    def _writeToBoard(self):  # converts dictionary of choices
+                              # --> 9 x 9 board of values 1-9
         board = Board.Board()
         for r in self.Sequence:
             for c in self.Sequence:
                 for v in self.Sequence:
-                    e = self.choices[(self.choices['vals'] == int(v)) & (self.choices['cols'] == int(c)) & (self.choices['rows'] == int(r))]['choice'].tolist()
+                    e = self.choices[(self.choices['vals'] == int(v)) &
+                                     (self.choices['cols'] == int(c)) &
+                                     (self.choices['rows'] == int(r))]['choice'].tolist()
                     if value(e[0]) == 1.0:
                         board.setValue(int(r)-1, int(c)-1, v)
         return board
@@ -215,7 +226,8 @@ class SolverDictionary(SolverParent):
         sudokuout.close()
 
         # The location of the solution is give to the user
-        return "Solution Written to sudokuout.txt"
+        print "Solution Written to sudokuout.txt"
+        return None
 
     # ------------ Helper functions ------------ #
 
@@ -244,7 +256,8 @@ class SolverDictionary(SolverParent):
                 Boxes = []
                 for r in range(3):
                     for c in range(3):
-                        list = [[(self.Sequence[3*r + i], self.Sequence[3*c +j]) for i in range(3) for j in range(3)]]
+                        list = [[(self.Sequence[3*r + i], self.Sequence[3*c +j])
+                                 for i in range(3) for j in range(3)]]
                         Boxes += list
                 return Boxes
             Boxes = _addBoxes()
@@ -260,7 +273,8 @@ class SolverDictionary(SolverParent):
         for (val, row, col) in hints:
             self.prob += self.choices[val][row][col] == 1, ""
         return None
-    def _writeToBoard(self):  # converts dictionary of choices --> 9 x 9 board of values 1-9
+    def _writeToBoard(self):  # converts dictionary of choices
+                              # --> 9 x 9 board of values 1-9
         board = Board.Board()
         for r in self.Rows:
             for c in self.Cols:
